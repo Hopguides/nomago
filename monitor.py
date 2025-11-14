@@ -4,7 +4,12 @@ import os
 from datetime import datetime
 
 # Railway PostgreSQL connection
-DATABASE_URL = os.environ.get('DATABASE_URL')
+# Try multiple possible environment variable names
+DATABASE_URL = (
+    os.environ.get('DATABASE_URL') or
+    os.environ.get('DATABASE_PRIVATE_URL') or
+    os.environ.get('POSTGRES_URL')
+)
 
 def fetch_nomago_data():
     """Fetch current bike availability"""
@@ -114,16 +119,24 @@ if __name__ == "__main__":
     if DATABASE_URL:
         # Show masked URL for security
         masked_url = DATABASE_URL[:20] + "***" + DATABASE_URL[-10:] if len(DATABASE_URL) > 30 else "***"
-        print(f"DATABASE_URL: {masked_url}")
+        print(f"DATABASE_URL value: {masked_url}")
+
+    # Check individual variables
+    print(f"\nChecking specific variables:")
+    for var in ['DATABASE_URL', 'DATABASE_PRIVATE_URL', 'POSTGRES_URL']:
+        val = os.environ.get(var)
+        if val:
+            val_preview = val[:15] + "***" if len(val) > 15 else val
+            print(f"  {var}: {val_preview} (length: {len(val)})")
+        else:
+            print(f"  {var}: NOT SET")
 
     # Show all DATABASE* env vars (masked)
-    db_vars = {k: v for k, v in os.environ.items() if k.startswith('DATABASE') or k.startswith('PG')}
-    if db_vars:
-        print(f"Found {len(db_vars)} database-related env variables")
-        for key in db_vars.keys():
-            print(f"  - {key}")
-    else:
-        print("⚠️  No database environment variables found!")
+    db_vars = {k: v for k, v in os.environ.items() if k.startswith('DATABASE') or k.startswith('PG') or k.startswith('POSTGRES')}
+    print(f"\nFound {len(db_vars)} database-related env variables:")
+    for key, value in db_vars.items():
+        val_len = len(value) if value else 0
+        print(f"  - {key} (length: {val_len})")
 
     print("=" * 50)
     print()
