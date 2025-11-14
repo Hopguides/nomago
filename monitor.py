@@ -108,6 +108,26 @@ if __name__ == "__main__":
     print("🚲 NOMAGO Monitor - Railway")
     print("=" * 50)
 
+    # Debug: Check environment variables
+    print(f"\n🔍 DEBUG INFO:")
+    print(f"DATABASE_URL exists: {'Yes' if DATABASE_URL else 'No'}")
+    if DATABASE_URL:
+        # Show masked URL for security
+        masked_url = DATABASE_URL[:20] + "***" + DATABASE_URL[-10:] if len(DATABASE_URL) > 30 else "***"
+        print(f"DATABASE_URL: {masked_url}")
+
+    # Show all DATABASE* env vars (masked)
+    db_vars = {k: v for k, v in os.environ.items() if k.startswith('DATABASE') or k.startswith('PG')}
+    if db_vars:
+        print(f"Found {len(db_vars)} database-related env variables")
+        for key in db_vars.keys():
+            print(f"  - {key}")
+    else:
+        print("⚠️  No database environment variables found!")
+
+    print("=" * 50)
+    print()
+
     data = fetch_nomago_data()
     if data:
         save_to_db(data)
