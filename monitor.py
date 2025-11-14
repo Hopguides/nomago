@@ -11,6 +11,17 @@ DATABASE_URL = (
     os.environ.get('POSTGRES_URL')
 )
 
+# If no DATABASE_URL, try to construct from individual components
+if not DATABASE_URL:
+    pguser = os.environ.get('PGUSER')
+    pgpassword = os.environ.get('PGPASSWORD')
+    pghost = os.environ.get('PGHOST')
+    pgport = os.environ.get('PGPORT', '5432')
+    pgdatabase = os.environ.get('PGDATABASE')
+
+    if all([pguser, pgpassword, pghost, pgdatabase]):
+        DATABASE_URL = f"postgresql://{pguser}:{pgpassword}@{pghost}:{pgport}/{pgdatabase}"
+
 def fetch_nomago_data():
     """Fetch current bike availability"""
     url = "https://api.ontime.si/api/v1/nomago-bike/"
@@ -128,6 +139,19 @@ if __name__ == "__main__":
         if val:
             val_preview = val[:15] + "***" if len(val) > 15 else val
             print(f"  {var}: {val_preview} (length: {len(val)})")
+        else:
+            print(f"  {var}: NOT SET")
+
+    # Check individual PG components
+    print(f"\nChecking PG components:")
+    for var in ['PGUSER', 'PGPASSWORD', 'PGHOST', 'PGPORT', 'PGDATABASE']:
+        val = os.environ.get(var)
+        if val:
+            if var == 'PGPASSWORD':
+                val_preview = "***"
+            else:
+                val_preview = val
+            print(f"  {var}: {val_preview}")
         else:
             print(f"  {var}: NOT SET")
 
